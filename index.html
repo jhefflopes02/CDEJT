@@ -14,6 +14,26 @@
         button:disabled { opacity: 0.2; cursor: not-allowed; }
         .btn-active:active:not(:disabled) { transform: scale(0.96); opacity: 0.8; }
         .main-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 400px; margin: 0 auto; padding: 10px 20px 30px 20px; }
+        
+        .custom-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #52525b;
+            border-radius: 4px;
+            background-color: #1c1c1e;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+        }
+        .custom-checkbox::before {
+            content: "✔️";
+            font-size: 12px;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+        }
+        .custom-checkbox:checked::before { transform: scale(1); }
+        .custom-checkbox:checked { border-color: #3f3f46; }
     </style>
 </head>
 <body>
@@ -50,13 +70,13 @@
             </div>
 
             <div class="flex items-center gap-3 ml-1">
-                <input type="checkbox" id="hasLocation" class="w-5 h-5 rounded border-2 border-zinc-600 bg-[#1c1c1e] appearance-none checked:bg-blue-600 checked:border-blue-600" onchange="toggleGpsOnCheckbox()">
+                <input type="checkbox" id="hasLocation" class="custom-checkbox" onchange="toggleGpsOnCheckbox()">
                 <label for="hasLocation" class="text-zinc-400 text-[10px] font-bold uppercase cursor-pointer select-none">JÁ TEM LOCALIZAÇÃO</label>
             </div>
 
             <div class="pt-2">
                 <button id="btnEntregar" onclick="startProcess(true, photoBuffer)" disabled class="btn-active w-full h-16 bg-[#34c759] text-white rounded-2xl font-bold text-xl shadow-lg flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">package_2</span> ENTREGAR
+                    <span class="material-symbols-outlined">package_2</span> FINALIZAR
                 </button>
             </div>
         </div>
@@ -67,7 +87,7 @@
                 <p class="text-[8px] text-zinc-500 uppercase">Desenvolvido por:</p>
                 <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">Jheff Lopes</p>
             </div>
-            <button id="btnSair" onclick="handleExit()" class="btn-active bg-[#ff3b30] text-white px-10 h-8 rounded-full font-bold text-[9px] uppercase tracking-widest">SAIR</button>
+            <button onclick="handleExit()" class="btn-active bg-[#ff3b30] text-white px-10 h-8 rounded-full font-bold text-[9px] uppercase tracking-widest">SAIR</button>
         </div>
     </div>
 
@@ -129,7 +149,6 @@
             else if (photoBuffer) startGpsTracking();
         }
 
-        // Limpa os dados para a próxima entrega sem fechar o app
         function clearForNextDelivery() {
             if(previewImg.src) URL.revokeObjectURL(previewImg.src);
             photoBuffer = null;
@@ -157,9 +176,7 @@
         }
 
         function handleExit() {
-            if (confirm("Deseja realmente fechar o App?")) {
-                window.location.reload(); 
-            }
+            if (confirm("Deseja realmente fechar o App?")) window.location.reload(); 
         }
 
         async function startProcess(withPhoto, file = null) {
@@ -187,31 +204,19 @@
                 message += hasLocationInput.checked ? "CLIENTE JÁ TEM LOCALIZAÇÃO ADICIONADA" : mapsUrl;
 
                 if (withPhoto && navigator.share && file) {
-                    const shareFile = new File([file], "entrega.jpg", { type: "image/jpeg" });
-                    await navigator.share({ files: [shareFile], text: message });
-                    // Sucesso no compartilhamento: Limpa para a próxima entrega
+                    await navigator.share({ files: [new File([file], "entrega.jpg", { type: "image/jpeg" })], text: message });
                     clearForNextDelivery();
-                    statusLabel.innerText = "ENTREGA CONCLUÍDA!";
-                    statusLabel.className = "text-green-500 font-bold text-[10px] h-4 uppercase tracking-widest";
                 } else {
-                    // Link direto do WhatsApp
                     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-                    // Limpa para a próxima entrega
                     clearForNextDelivery();
-                    statusLabel.innerText = "WHATSAPP ABERTO!";
-                    statusLabel.className = "text-blue-500 font-bold text-[10px] h-4 uppercase tracking-widest";
                 }
             } catch (e) { 
-                if(e.message === "GPS_FAIL") {
-                    statusLabel.innerText = "FALHA NO GPS. TENTE NOVAMENTE.";
-                } else {
-                    statusLabel.innerText = "ENVIO CANCELADO.";
-                }
+                statusLabel.innerText = e.message === "GPS_FAIL" ? "FALHA NO GPS" : "ENVIO CANCELADO";
                 statusLabel.className = "text-red-500 font-bold text-[10px] h-4 uppercase tracking-widest";
             }
             
             isProcessing = false;
-            btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> ENTREGAR';
+            btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> FINALIZAR';
             validateForm();
         }
 
