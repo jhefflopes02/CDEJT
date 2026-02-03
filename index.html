@@ -20,6 +20,15 @@
         .custom-checkbox:checked { border-color: #3f3f46; }
 
         body.offline .material-symbols-outlined { display: none !important; }
+
+        .material-symbols-outlined {
+            font-display: block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
     </style>
 </head>
 <body>
@@ -211,7 +220,18 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => {
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                location.reload();
+                            }
+                        };
+                    };
+                })
+                .catch(() => {});
             });
         }
 
