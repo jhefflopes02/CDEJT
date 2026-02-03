@@ -1,4 +1,4 @@
-const CACHE_NAME = 'casa-eletronicos-v5';
+const CACHE_NAME = 'casa-eletronicos-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -33,14 +33,16 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
+      if (response) return response;
+
       return fetch(event.request).then((networkResponse) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        });
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
       }).catch(() => {
         if (event.request.mode === 'navigate') {
           return caches.match('./index.html');
