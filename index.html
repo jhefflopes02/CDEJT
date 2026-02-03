@@ -50,7 +50,7 @@
             </div>
 
             <div class="flex items-center gap-3 ml-1">
-                <input type="checkbox" id="hasLocation" class="w-5 h-5 rounded border-2 border-zinc-600 bg-[#1c1c1e] appearance-none checked:bg-blue-600 checked:border-blue-600">
+                <input type="checkbox" id="hasLocation" class="w-5 h-5 rounded border-2 border-zinc-600 bg-[#1c1c1e] appearance-none checked:bg-blue-600 checked:border-blue-600" onchange="toggleGpsOnCheckbox()">
                 <label for="hasLocation" class="text-zinc-400 text-[10px] font-bold uppercase cursor-pointer select-none">JÁ TEM LOCALIZAÇÃO</label>
             </div>
 
@@ -67,7 +67,7 @@
                 <p class="text-[8px] text-zinc-500 uppercase">Desenvolvido por:</p>
                 <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">Jheff Lopes</p>
             </div>
-            <button onclick="handleExit()" class="btn-active bg-[#ff3b30] text-white px-10 h-8 rounded-full font-bold text-[9px] uppercase tracking-widest">SAIR</button>
+            <button id="btnSair" onclick="handleExit()" class="btn-active bg-[#ff3b30] text-white px-10 h-8 rounded-full font-bold text-[9px] uppercase tracking-widest">SAIR</button>
         </div>
     </div>
 
@@ -86,6 +86,8 @@
         
         let isProcessing = false;
         let photoBuffer = null;
+        let currentPos = null;
+        let watchId = null;
 
         function validateForm() {
             btnEntregar.disabled = !clientInput.value.trim() || !photoBuffer || isProcessing;
@@ -100,8 +102,48 @@
                 photoPlaceholder.classList.add('hidden');
                 btnRemovePhoto.classList.remove('hidden');
                 validateForm();
+                if(!hasLocationInput.checked) setTimeout(startGpsTracking, 1000);
             }
         };
+
+        function startGpsTracking() {
+            if (hasLocationInput.checked || watchId) return;
+            statusLabel.innerText = "Buscando GPS...";
+            statusLabel.className = "text-yellow-500 font-bold text-[10px] h-4 uppercase tracking-widest";
+            watchId = navigator.geolocation.watchPosition((p) => {
+                currentPos = p;
+                const acc = Math.floor(p.coords.accuracy);
+                statusLabel.innerText = `Precisão: ±${acc}m`;
+                statusLabel.className = acc <= 15 ? "text-green-500 font-bold text-[10px] h-4 uppercase tracking-widest" : "text-yellow-500 font-bold text-[10px] h-4 uppercase tracking-widest";
+            }, null, { enableHighAccuracy: true, maximumAge: 0 });
+        }
+
+        function stopGpsTracking() {
+            if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            currentPos = null;
+            statusLabel.innerText = "";
+        }
+
+        function toggleGpsOnCheckbox() {
+            if (hasLocationInput.checked) stopGpsTracking();
+            else if (photoBuffer) startGpsTracking();
+        }
+
+        // Limpa os dados para a próxima entrega sem fechar o app
+        function clearForNextDelivery() {
+            if(previewImg.src) URL.revokeObjectURL(previewImg.src);
+            photoBuffer = null;
+            cameraInput.value = "";
+            previewImg.classList.add('hidden');
+            previewImg.src = "";
+            photoPlaceholder.classList.remove('hidden');
+            btnRemovePhoto.classList.add('hidden');
+            clientInput.value = "";
+            obsInput.value = "";
+            hasLocationInput.checked = false;
+            stopGpsTracking();
+            validateForm();
+        }
 
         function clearStoredPhoto() {
             if(previewImg.src) URL.revokeObjectURL(previewImg.src);
@@ -110,37 +152,34 @@
             previewImg.classList.add('hidden');
             photoPlaceholder.classList.remove('hidden');
             btnRemovePhoto.classList.add('hidden');
+            stopGpsTracking();
             validateForm();
         }
 
-        function handleExit() { window.location.href = "about:blank"; }
+        function handleExit() {
+            if (confirm("Deseja realmente fechar o App?")) {
+                window.location.reload(); 
+            }
+        }
 
         async function startProcess(withPhoto, file = null) {
             if (isProcessing) return;
             isProcessing = true;
-            btnEntregar.innerText = "CALIBRANDO GPS...";
-            validateForm();
+            btnEntregar.innerText = "ENVIANDO...";
+            btnEntregar.disabled = true;
 
             try {
                 let mapsUrl = "";
                 if (!hasLocationInput.checked) {
-                    const pos = await new Promise((res, rej) => {
-                        const startTime = Date.now();
-                        let watchId = navigator.geolocation.watchPosition((p) => {
-                            const acc = Math.floor(p.coords.accuracy);
-                            statusLabel.innerText = `Precisão: ±${acc}m`;
-                            if(acc <= 15) statusLabel.className = "text-green-500 font-bold text-[10px] h-4 uppercase tracking-widest";
-                            else statusLabel.className = "text-yellow-500 font-bold text-[10px] h-4 uppercase tracking-widest";
-
-                            if (acc <= 15 || Date.now() - startTime > 15000) {
-                                navigator.geolocation.clearWatch(watchId);
-                                res(p);
-                            }
-                        }, (err) => { 
-                            navigator.geolocation.clearWatch(watchId); rej(err); 
-                        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-                    });
-                    mapsUrl = `https://www.google.com/maps/search/?api=1&query=${pos.coords.latitude},${pos.coords.longitude}`;
+                    if (!currentPos) {
+                        statusLabel.innerText = "Aguardando GPS final...";
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                    }
+                    if (currentPos) {
+                        mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentPos.coords.latitude},${currentPos.coords.longitude}`;
+                    } else {
+                        throw new Error("GPS_FAIL");
+                    }
                 }
 
                 let message = `CLIENTE: ${clientInput.value.trim().toUpperCase()}\n\n`;
@@ -150,13 +189,27 @@
                 if (withPhoto && navigator.share && file) {
                     const shareFile = new File([file], "entrega.jpg", { type: "image/jpeg" });
                     await navigator.share({ files: [shareFile], text: message });
+                    // Sucesso no compartilhamento: Limpa para a próxima entrega
+                    clearForNextDelivery();
+                    statusLabel.innerText = "ENTREGA CONCLUÍDA!";
+                    statusLabel.className = "text-green-500 font-bold text-[10px] h-4 uppercase tracking-widest";
                 } else {
+                    // Link direto do WhatsApp
                     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                    // Limpa para a próxima entrega
+                    clearForNextDelivery();
+                    statusLabel.innerText = "WHATSAPP ABERTO!";
+                    statusLabel.className = "text-blue-500 font-bold text-[10px] h-4 uppercase tracking-widest";
                 }
             } catch (e) { 
-                statusLabel.innerText = "ERRO AO CALIBRAR GPS"; 
+                if(e.message === "GPS_FAIL") {
+                    statusLabel.innerText = "FALHA NO GPS. TENTE NOVAMENTE.";
+                } else {
+                    statusLabel.innerText = "ENVIO CANCELADO.";
+                }
                 statusLabel.className = "text-red-500 font-bold text-[10px] h-4 uppercase tracking-widest";
             }
+            
             isProcessing = false;
             btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> ENTREGAR';
             validateForm();
@@ -164,9 +217,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('PWA ativo'))
-                    .catch(err => console.log('Erro PWA'));
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
             });
         }
     </script>
