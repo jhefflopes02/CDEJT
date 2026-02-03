@@ -6,84 +6,83 @@
     <title>CASA DOS ELETRÔNICOS</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #000000; color: white; font-family: sans-serif; -webkit-tap-highlight-color: transparent; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; overscroll-behavior: none; }
-        .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; }
+        body { background-color: #000000; color: white; font-family: sans-serif; -webkit-tap-highlight-color: transparent; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; margin: 0; overscroll-behavior: none; }
+        .main-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 400px; margin: 0 auto; padding: 10px 20px 30px 20px; box-sizing: border-box; }
+        .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
         button:disabled { opacity: 0.2; cursor: not-allowed; }
-        .btn-active:active:not(:disabled) { transform: scale(0.96); opacity: 0.8; }
-        .main-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 400px; margin: 0 auto; padding: 10px 20px 30px 20px; }
         .custom-checkbox { appearance: none; width: 20px; height: 20px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; cursor: pointer; }
-        .custom-checkbox::before { content: "✔️"; font-size: 12px; transform: scale(0); transition: 120ms transform ease-in-out; }
-        .custom-checkbox:checked::before { transform: scale(1); }
-        .custom-checkbox:checked { border-color: #3f3f46; }
+        .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 14px; }
+        
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .text-center { text-align: center; }
+        .gap-1 { gap: 4px; }
+        .gap-2 { gap: 8px; }
+        .w-full { width: 100%; }
+        .hidden { display: none; }
 
+        #offlineIndicator { display: none; color: #ef4444; font-weight: bold; font-size: 14px; letter-spacing: 1px; margin-bottom: 5px; }
+        body.offline #offlineIndicator { display: block; }
         body.offline .material-symbols-outlined { display: none !important; }
-
-        .material-symbols-outlined {
-            font-display: block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-        }
     </style>
 </head>
-<body>
+<body class="offline">
     <div class="main-container">
-        <div class="flex flex-col items-center mb-2">
-            <span class="material-symbols-outlined text-blue-500" style="font-size: 40px;">local_shipping</span>
-            <h1 class="text-xl font-bold tracking-tight text-center">CASA DOS ELETRÔNICOS</h1>
-            <p class="text-zinc-500 text-[9px] uppercase tracking-widest">Entregas</p>
+        <div class="flex flex-col items-center" style="margin-bottom: 8px;">
+            <div id="offlineIndicator">OFFLINE</div>
+            <span class="material-symbols-outlined text-blue-500" style="font-size: 40px; color: #3b82f6;">local_shipping</span>
+            <h1 style="font-size: 20px; font-weight: bold; margin: 0;">CASA DOS ELETRÔNICOS</h1>
+            <p style="color: #71717a; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin: 0;">Entregas</p>
         </div>
 
-        <div id="statusLabel" class="font-bold text-[10px] h-6 uppercase tracking-widest transition-colors text-center flex items-center justify-center mb-2"></div>
+        <div id="statusLabel" style="font-weight: bold; font-size: 10px; height: 24px; text-transform: uppercase; text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;"></div>
 
-        <div class="flex-grow flex flex-col space-y-4 w-full">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
             <div class="flex flex-col gap-2">
-                <label class="text-zinc-400 text-[10px] font-bold ml-1 uppercase">Foto:</label>
-                <div id="photoArea" onclick="if(!photoBuffer) cameraInput.click()" class="relative w-full h-32 bg-[#1c1c1e] rounded-2xl border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">FOTO:</label>
+                <div id="photoArea" onclick="if(!photoBuffer) cameraInput.click()" style="position: relative; width: 100%; height: 128px; background-color: #1c1c1e; border-radius: 16px; border: 2px dashed #3f3f46; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;">
                     <div id="photoPlaceholder" class="flex flex-col items-center">
-                        <span class="material-symbols-outlined text-zinc-500" style="font-size: 32px;">add_a_photo</span>
-                        <span class="text-[10px] text-zinc-500 mt-1 uppercase font-bold">Tirar Foto</span>
+                        <span class="material-symbols-outlined" style="font-size: 32px; color: #71717a;">add_a_photo</span>
+                        <span style="font-size: 10px; color: #71717a; font-weight: bold;">TIRAR FOTO</span>
                     </div>
-                    <img id="previewImg" class="hidden w-full h-full object-cover">
-                    <button id="btnRemovePhoto" onclick="event.stopPropagation(); clearStoredPhoto()" class="hidden absolute top-2 right-2 bg-red-600 rounded-full w-8 h-8 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white text-[18px]">close</span>
-                    </button>
+                    <img id="previewImg" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
+                    <button id="btnRemovePhoto" class="hidden" onclick="event.stopPropagation(); clearStoredPhoto()" style="position: absolute; top: 8px; right: 8px; background: #ef4444; border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-weight: bold;">X</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-1">
-                <label class="text-zinc-400 text-[10px] font-bold ml-1 uppercase">Cliente:</label>
-                <input type="text" id="clientName" placeholder="Nome do cliente" class="input-dark w-full outline-none focus:border-zinc-500" oninput="validateForm()">
+                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">CLIENTE:</label>
+                <input type="text" id="clientName" placeholder="Nome do cliente" class="input-dark" oninput="validateForm()">
             </div>
 
             <div class="flex flex-col gap-1">
-                <label class="text-zinc-400 text-[10px] font-bold ml-1 uppercase">Observações:</label>
-                <textarea id="observations" rows="2" placeholder="(Opcional)" class="input-dark w-full outline-none focus:border-zinc-500 resize-none" oninput="validateForm()"></textarea>
+                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">OBSERVAÇÕES:</label>
+                <textarea id="observations" rows="2" placeholder="(Opcional)" class="input-dark" style="resize: none;" oninput="validateForm()"></textarea>
             </div>
 
-            <div class="flex items-center gap-3 ml-1">
+            <div class="flex items-center" style="gap: 12px; margin-left: 4px;">
                 <input type="checkbox" id="hasLocation" class="custom-checkbox" onchange="toggleGpsOnCheckbox()">
-                <label for="hasLocation" class="text-zinc-400 text-[10px] font-bold uppercase cursor-pointer select-none">JÁ TEM LOCALIZAÇÃO</label>
+                <label for="hasLocation" style="color: #a1a1aa; font-size: 10px; font-weight: bold; cursor: pointer;">JÁ TEM LOCALIZAÇÃO</label>
             </div>
 
-            <div class="pt-2">
-                <button id="btnEntregar" onclick="startProcess(true, photoBuffer)" disabled class="btn-active w-full h-16 bg-[#34c759] text-white rounded-2xl font-bold text-xl shadow-lg flex items-center justify-center gap-2">
+            <div style="padding-top: 8px;">
+                <button id="btnEntregar" onclick="startProcess(true, photoBuffer)" disabled style="width: 100%; height: 64px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <span class="material-symbols-outlined">package_2</span> FINALIZAR
                 </button>
             </div>
         </div>
 
-        <div class="mt-4 text-center space-y-4">
-            <div class="opacity-40">
-                <p class="text-[8px] text-zinc-500 uppercase">Desenvolvido por:</p>
-                <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">Jheff Lopes</p>
+        <div style="margin-top: 16px; text-align: center;">
+            <div style="opacity: 0.4; margin-bottom: 16px;">
+                <p style="font-size: 8px; color: #71717a; margin: 0;">DESENVOLVIDO POR:</p>
+                <p style="font-size: 9px; color: #a1a1aa; font-weight: bold; margin: 0;">JHEFF LOPES</p>
             </div>
-            <button onclick="handleExit()" class="btn-active bg-[#ff3b30] text-white px-10 h-8 rounded-full font-bold text-[9px] uppercase tracking-widest">SAIR</button>
+            <button onclick="handleExit()" style="background: #ef4444; color: white; border: none; border-radius: 20px; padding: 8px 40px; font-size: 9px; font-weight: bold; cursor: pointer;">SAIR</button>
         </div>
     </div>
 
@@ -125,12 +124,12 @@
         function startGpsTracking() {
             if (hasLocationInput.checked || watchId) return;
             statusLabel.innerText = "Buscando GPS...";
-            statusLabel.className = "text-yellow-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2";
+            statusLabel.style.color = "#eab308";
             watchId = navigator.geolocation.watchPosition((p) => {
                 currentPos = p;
                 const acc = Math.floor(p.coords.accuracy);
                 statusLabel.innerText = `Precisão: ±${acc}m`;
-                statusLabel.className = acc <= 15 ? "text-green-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2" : "text-yellow-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2";
+                statusLabel.style.color = acc <= 15 ? "#22c55e" : "#eab308";
             }, null, { enableHighAccuracy: true, maximumAge: 0 });
         }
 
@@ -190,7 +189,7 @@
                         await new Promise(resolve => setTimeout(resolve, 3000));
                     }
                     if (currentPos) {
-                        mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentPos.coords.latitude},${currentPos.coords.longitude}`;
+                        mapsUrl = `https://www.google.com/maps?q=${currentPos.coords.latitude},${currentPos.coords.longitude}`;
                     } else {
                         throw new Error("GPS_FAIL");
                     }
@@ -209,50 +208,35 @@
                 }
             } catch (e) { 
                 statusLabel.innerText = e.message === "GPS_FAIL" ? "FALHA NO GPS" : "ENVIO CANCELADO";
-                statusLabel.className = "text-red-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2";
+                statusLabel.style.color = "#ef4444";
             }
             
             isProcessing = false;
-            const iconHtml = navigator.onLine ? '<span class="material-symbols-outlined">package_2</span> ' : '';
-            btnEntregar.innerHTML = iconHtml + 'FINALIZAR';
+            updateConnectionStatus();
             validateForm();
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => {
-                        reg.update(); 
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
-                            installingWorker.onstatechange = () => {
-                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    window.location.reload();
-                                }
-                            };
-                        };
-                    })
-                    .catch(() => {});
-            });
         }
 
         function updateConnectionStatus() {
             if (navigator.onLine) {
                 document.body.classList.remove('offline');
-                if (!isProcessing) {
-                    const currentText = btnEntregar.innerText.replace('package_2', '').trim(); 
-                    if(currentText === "FINALIZAR") {
-                         btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> FINALIZAR';
-                    }
-                }
+                btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> FINALIZAR';
             } else {
                 document.body.classList.add('offline');
+                btnEntregar.innerHTML = 'FINALIZAR';
             }
         }
 
         window.addEventListener('online', updateConnectionStatus);
         window.addEventListener('offline', updateConnectionStatus);
         updateConnectionStatus();
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    reg.update();
+                }).catch(() => {});
+            });
+        }
     </script>
 </body>
 </html>
