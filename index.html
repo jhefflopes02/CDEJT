@@ -22,11 +22,13 @@
 </head>
 <body>
     <div class="main-container">
-        <div class="flex flex-col items-center mb-4">
+        <div class="flex flex-col items-center mb-2">
             <span class="material-symbols-outlined text-blue-500" style="font-size: 40px;">local_shipping</span>
             <h1 class="text-xl font-bold tracking-tight text-center">CASA DOS ELETRÔNICOS</h1>
             <p class="text-zinc-500 text-[9px] uppercase tracking-widest">Entregas</p>
         </div>
+
+        <div id="statusLabel" class="font-bold text-[10px] h-6 uppercase tracking-widest transition-colors text-center flex items-center justify-center mb-2"></div>
 
         <div class="flex-grow flex flex-col space-y-4 w-full">
             <div class="flex flex-col gap-2">
@@ -66,7 +68,6 @@
         </div>
 
         <div class="mt-4 text-center space-y-4">
-            <div id="statusLabel" class="font-bold text-[10px] h-4 uppercase tracking-widest transition-colors"></div>
             <div class="opacity-40">
                 <p class="text-[8px] text-zinc-500 uppercase">Desenvolvido por:</p>
                 <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">Jheff Lopes</p>
@@ -113,12 +114,12 @@
         function startGpsTracking() {
             if (hasLocationInput.checked || watchId) return;
             statusLabel.innerText = "Buscando GPS...";
-            statusLabel.className = "text-yellow-500 font-bold text-[10px] h-4 uppercase tracking-widest";
+            statusLabel.className = "text-yellow-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2";
             watchId = navigator.geolocation.watchPosition((p) => {
                 currentPos = p;
                 const acc = Math.floor(p.coords.accuracy);
                 statusLabel.innerText = `Precisão: ±${acc}m`;
-                statusLabel.className = acc <= 15 ? "text-green-500 font-bold text-[10px] h-4 uppercase tracking-widest" : "text-yellow-500 font-bold text-[10px] h-4 uppercase tracking-widest";
+                statusLabel.className = acc <= 15 ? "text-green-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2" : "text-yellow-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2";
             }, null, { enableHighAccuracy: true, maximumAge: 0 });
         }
 
@@ -197,7 +198,7 @@
                 }
             } catch (e) { 
                 statusLabel.innerText = e.message === "GPS_FAIL" ? "FALHA NO GPS" : "ENVIO CANCELADO";
-                statusLabel.className = "text-red-500 font-bold text-[10px] h-4 uppercase tracking-widest";
+                statusLabel.className = "text-red-500 font-bold text-[10px] h-6 uppercase tracking-widest text-center flex items-center justify-center mb-2";
             }
             
             isProcessing = false;
