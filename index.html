@@ -18,6 +18,8 @@
         .custom-checkbox::before { content: "✔️"; font-size: 12px; transform: scale(0); transition: 120ms transform ease-in-out; }
         .custom-checkbox:checked::before { transform: scale(1); }
         .custom-checkbox:checked { border-color: #3f3f46; }
+
+        body.offline .material-symbols-outlined { display: none !important; }
     </style>
 </head>
 <body>
@@ -202,7 +204,8 @@
             }
             
             isProcessing = false;
-            btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> FINALIZAR';
+            const iconHtml = navigator.onLine ? '<span class="material-symbols-outlined">package_2</span> ' : '';
+            btnEntregar.innerHTML = iconHtml + 'FINALIZAR';
             validateForm();
         }
 
@@ -211,6 +214,24 @@
                 navigator.serviceWorker.register('./sw.js').catch(() => {});
             });
         }
+
+        function updateConnectionStatus() {
+            if (navigator.onLine) {
+                document.body.classList.remove('offline');
+                if (!isProcessing) {
+                    const currentText = btnEntregar.innerText.replace('package_2', '').trim(); 
+                    if(currentText === "FINALIZAR") {
+                         btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> FINALIZAR';
+                    }
+                }
+            } else {
+                document.body.classList.add('offline');
+            }
+        }
+
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
     </script>
 </body>
 </html>
