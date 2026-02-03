@@ -189,7 +189,7 @@
                         await new Promise(resolve => setTimeout(resolve, 3000));
                     }
                     if (currentPos) {
-                        mapsUrl = `https://www.google.com/maps?q=${currentPos.coords.latitude},${currentPos.coords.longitude}`;
+                        mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentPos.coords.latitude},${currentPos.coords.longitude}`;
                     } else {
                         throw new Error("GPS_FAIL");
                     }
