@@ -1,11 +1,10 @@
-const CACHE_NAME = 'casa-eletronicos-v9';
+const CACHE_NAME = 'casa-eletronicos-offline-v10';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon.png',
-  'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0'
+  './icon.png'
+  // Removido tailwind e fontes externas para garantir modo offline puro
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,18 +31,26 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
+    caches.match(event.request).then((cachedResponse) => {
+      // Se tiver no cache, retorna imediatamente (Offline First)
+      if (cachedResponse) {
+        return cachedResponse;
+      }
 
+      // Se não, busca na rede e salva no cache para a próxima
       return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
         }
+
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+
         return networkResponse;
       }).catch(() => {
+        // Se falhar a rede e não tiver cache (ex: página inicial)
         if (event.request.mode === 'navigate') {
           return caches.match('./index.html');
         }
