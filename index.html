@@ -6,15 +6,12 @@
     <title>CASA DOS ELETRÔNICOS</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
-    <link rel="stylesheet" id="icon-font" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* CSS GERAL E RESET */
         body { background-color: #000000; color: white; font-family: sans-serif; -webkit-tap-highlight-color: transparent; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; margin: 0; overscroll-behavior: none; }
+        
+        /* UTILITÁRIOS (SUBSTITUINDO TAILWIND) */
         .main-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 400px; margin: 0 auto; padding: 10px 20px 30px 20px; box-sizing: border-box; }
-        .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
-        button:disabled { opacity: 0.2; cursor: not-allowed; }
-        .custom-checkbox { appearance: none; width: 20px; height: 20px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; cursor: pointer; }
-        .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 14px; }
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .items-center { align-items: center; }
@@ -23,60 +20,111 @@
         .gap-1 { gap: 4px; }
         .gap-2 { gap: 8px; }
         .w-full { width: 100%; }
-        .hidden { display: none; }
-        #offlineIndicator { display: none; color: #ef4444; font-weight: bold; font-size: 14px; letter-spacing: 1px; margin-bottom: 5px; }
-        body.offline #offlineIndicator { display: block; }
-        body.offline .material-symbols-outlined { display: none !important; }
+        .hidden { display: none !important; }
+        
+        /* COMPONENTES */
+        .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; font-family: sans-serif; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        /* CHECKBOX */
+        .custom-checkbox { appearance: none; width: 24px; height: 24px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; cursor: pointer; }
+        .custom-checkbox:checked { background-color: #3b82f6; border-color: #3b82f6; }
+        .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 16px; font-weight: bold; }
+
+        /* FOTO */
+        #photoArea { position: relative; width: 100%; height: 128px; background-color: #1c1c1e; border-radius: 16px; border: 2px dashed #3f3f46; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
+        
+        /* BOTÕES */
+        .btn-success { width: 100%; height: 64px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-danger { background: #ef4444; color: white; border: none; border-radius: 20px; padding: 8px 40px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        
+        /* ÍCONES SVG (Para funcionar Offline) */
+        .icon { width: 24px; height: 24px; fill: currentColor; }
+        .icon-lg { width: 40px; height: 40px; fill: #3b82f6; }
+        .icon-md { width: 32px; height: 32px; fill: #71717a; }
+
+        /* BOTÃO ATUALIZAR (Canto Inferior Direito) */
+        #btnRefresh {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 35px;
+            height: 35px;
+            background-color: #27272a;
+            border: 1px solid #3f3f46;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a1a1aa;
+            z-index: 1000;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        #btnRefresh:active { background-color: #3f3f46; color: white; }
     </style>
 </head>
 <body>
     <div class="main-container">
         <div class="flex flex-col items-center" style="margin-bottom: 8px;">
-            <div id="offlineIndicator">OFFLINE</div>
-            <span class="material-symbols-outlined text-blue-500" style="font-size: 40px; color: #3b82f6;">local_shipping</span>
-            <h1 style="font-size: 20px; font-weight: bold; margin: 0;">CASA DOS ELETRÔNICOS</h1>
+            <svg class="icon-lg" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            <h1 style="font-size: 20px; font-weight: bold; margin: 4px 0 0 0;">CASA DOS ELETRÔNICOS</h1>
             <p style="color: #71717a; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin: 0;">Entregas</p>
         </div>
+
         <div id="statusLabel" style="font-weight: bold; font-size: 10px; height: 24px; text-transform: uppercase; text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;"></div>
+
         <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
             <div class="flex flex-col gap-2">
                 <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">FOTO:</label>
-                <div id="photoArea" onclick="if(!photoBuffer) cameraInput.click()" style="position: relative; width: 100%; height: 128px; background-color: #1c1c1e; border-radius: 16px; border: 2px dashed #3f3f46; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;">
+                <div id="photoArea" onclick="if(!photoBuffer) cameraInput.click()">
                     <div id="photoPlaceholder" class="flex flex-col items-center">
-                        <span class="material-symbols-outlined" style="font-size: 32px; color: #71717a;">add_a_photo</span>
-                        <span style="font-size: 10px; color: #71717a; font-weight: bold;">TIRAR FOTO</span>
+                        <svg class="icon-md" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/><path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z" opacity="0"/><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5l-1.83 2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.17L12 2zM5 18V6h14v12H5zm7-10c2.76 0 5 2.24 5 5s-2.24 5-5 5-5-2.24-5-5 2.24-5 5-5z"/></svg>
+                        <span style="font-size: 10px; color: #71717a; font-weight: bold; margin-top: 4px;">TIRAR FOTO</span>
                     </div>
                     <img id="previewImg" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
                     <button id="btnRemovePhoto" class="hidden" onclick="event.stopPropagation(); clearStoredPhoto()" style="position: absolute; top: 8px; right: 8px; background: #ef4444; border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-weight: bold;">X</button>
                 </div>
             </div>
+
             <div class="flex flex-col gap-1">
                 <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">CLIENTE:</label>
                 <input type="text" id="clientName" placeholder="Nome do cliente" class="input-dark" oninput="validateForm()">
             </div>
+
             <div class="flex flex-col gap-1">
                 <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">OBSERVAÇÕES:</label>
                 <textarea id="observations" rows="2" placeholder="(Opcional)" class="input-dark" style="resize: none;" oninput="validateForm()"></textarea>
             </div>
+
             <div class="flex items-center" style="gap: 12px; margin-left: 4px;">
                 <input type="checkbox" id="hasLocation" class="custom-checkbox" onchange="toggleGpsOnCheckbox()">
                 <label for="hasLocation" style="color: #a1a1aa; font-size: 10px; font-weight: bold; cursor: pointer;">JÁ TEM LOCALIZAÇÃO</label>
             </div>
+
             <div style="padding-top: 8px;">
-                <button id="btnEntregar" onclick="startProcess(true, photoBuffer)" disabled style="width: 100%; height: 64px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <span class="material-symbols-outlined">package_2</span> FINALIZAR
+                <button id="btnEntregar" onclick="startProcess(true, photoBuffer)" disabled class="btn-success">
+                    <svg style="width: 24px; height: 24px; fill: white;" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+                    FINALIZAR
                 </button>
             </div>
         </div>
+
         <div style="margin-top: 16px; text-align: center;">
             <div style="opacity: 0.4; margin-bottom: 16px;">
                 <p style="font-size: 8px; color: #71717a; margin: 0;">DESENVOLVIDO POR:</p>
                 <p style="font-size: 9px; color: #a1a1aa; font-weight: bold; margin: 0;">JHEFF LOPES</p>
             </div>
-            <button onclick="handleExit()" style="background: #ef4444; color: white; border: none; border-radius: 20px; padding: 8px 40px; font-size: 9px; font-weight: bold; cursor: pointer;">SAIR</button>
+            <button onclick="handleExit()" class="btn-danger">SAIR</button>
         </div>
     </div>
+
+    <button id="btnRefresh" onclick="forceUpdate()" title="Atualizar App">
+        <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    </button>
+
     <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+
     <script>
         const clientInput = document.getElementById('clientName');
         const obsInput = document.getElementById('observations');
@@ -91,9 +139,12 @@
         let photoBuffer = null;
         let currentPos = null;
         let watchId = null;
+
         function validateForm() {
+            // Só libera o botão se tiver Cliente e Foto
             btnEntregar.disabled = !clientInput.value.trim() || !photoBuffer || isProcessing;
         }
+
         cameraInput.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -106,6 +157,7 @@
                 if(!hasLocationInput.checked) setTimeout(startGpsTracking, 1000);
             }
         };
+
         function startGpsTracking() {
             if (hasLocationInput.checked || watchId) return;
             statusLabel.innerText = "Buscando GPS...";
@@ -117,15 +169,18 @@
                 statusLabel.style.color = acc <= 15 ? "#22c55e" : "#eab308";
             }, null, { enableHighAccuracy: true, maximumAge: 0 });
         }
+
         function stopGpsTracking() {
             if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             currentPos = null;
             statusLabel.innerText = "";
         }
+
         function toggleGpsOnCheckbox() {
             if (hasLocationInput.checked) stopGpsTracking();
             else if (photoBuffer) startGpsTracking();
         }
+
         function clearForNextDelivery() {
             if(previewImg.src) URL.revokeObjectURL(previewImg.src);
             photoBuffer = null;
@@ -140,6 +195,7 @@
             stopGpsTracking();
             validateForm();
         }
+
         function clearStoredPhoto() {
             if(previewImg.src) URL.revokeObjectURL(previewImg.src);
             photoBuffer = null;
@@ -150,20 +206,45 @@
             stopGpsTracking();
             validateForm();
         }
+
         function handleExit() {
             window.close();
             window.location.href = "about:blank";
         }
+
+        // Função para atualizar manualmente (Limpa cache e recarrega)
+        async function forceUpdate() {
+            const btn = document.getElementById('btnRefresh');
+            btn.style.transform = "rotate(360deg)";
+            btn.style.transition = "transform 0.5s";
+            
+            if ('serviceWorker' in navigator) {
+                // Remove todos os caches antigos
+                const keys = await caches.keys();
+                await Promise.all(keys.map(key => caches.delete(key)));
+                
+                // Desregistra o Service Worker
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    await registration.unregister();
+                }
+            }
+            // Força recarregamento do servidor
+            window.location.reload(true);
+        }
+
         async function startProcess(withPhoto, file = null) {
             if (isProcessing) return;
             isProcessing = true;
-            btnEntregar.innerText = "ENVIANDO...";
+            const originalText = btnEntregar.innerHTML;
+            btnEntregar.innerHTML = "ENVIANDO...";
             btnEntregar.disabled = true;
+
             try {
                 let mapsUrl = "";
                 if (!hasLocationInput.checked) {
                     if (!currentPos) {
-                        statusLabel.innerText = "Aguardando GPS final...";
+                        statusLabel.innerText = "Aguardando GPS...";
                         await new Promise(resolve => setTimeout(resolve, 3000));
                     }
                     if (currentPos) {
@@ -172,9 +253,11 @@
                         throw new Error("GPS_FAIL");
                     }
                 }
+
                 let message = `CLIENTE: ${clientInput.value.trim().toUpperCase()}\n\n`;
                 if (obsInput.value.trim()) message += `OBS:\n${obsInput.value.trim().toUpperCase()}\n\n`;
                 message += hasLocationInput.checked ? "CLIENTE JÁ TEM LOCALIZAÇÃO ADICIONADA" : mapsUrl;
+
                 if (withPhoto && navigator.share && file) {
                     await navigator.share({ files: [new File([file], "entrega.jpg", { type: "image/jpeg" })], text: message });
                     clearForNextDelivery();
@@ -183,30 +266,18 @@
                     clearForNextDelivery();
                 }
             } catch (e) { 
-                statusLabel.innerText = e.message === "GPS_FAIL" ? "FALHA NO GPS" : "ENVIO CANCELADO";
+                statusLabel.innerText = e.message === "GPS_FAIL" ? "FALHA NO GPS" : "ERRO AO ENVIAR";
                 statusLabel.style.color = "#ef4444";
             }
             isProcessing = false;
-            updateConnectionStatus();
+            btnEntregar.innerHTML = originalText;
             validateForm();
         }
-        function updateConnectionStatus() {
-            if (navigator.onLine) {
-                document.body.classList.remove('offline');
-                const link = document.getElementById('icon-font');
-                link.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0&v=" + Date.now();
-                btnEntregar.innerHTML = '<span class="material-symbols-outlined">package_2</span> FINALIZAR';
-            } else {
-                document.body.classList.add('offline');
-                btnEntregar.innerHTML = 'FINALIZAR';
-            }
-        }
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
-        updateConnectionStatus();
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
+                    // Checa atualizações silenciosamente
                     reg.update();
                 }).catch(() => {});
             });
