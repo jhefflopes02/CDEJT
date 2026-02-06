@@ -1,7 +1,7 @@
 const CACHE_NAME = 'casa-eletronicos-v1';
 const ASSETS = [
   './',
-  './teste.html',
+  './index.html',
   './manifest.json',
   './icon.png'
 ];
