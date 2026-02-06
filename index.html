@@ -13,65 +13,70 @@
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .items-center { align-items: center; }
-        .justify-center { justify-content: center; }
-        .text-center { text-align: center; }
-        .gap-1 { gap: 4px; }
-        .gap-2 { gap: 8px; }
         .hidden { display: none !important; }
-        .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; font-family: sans-serif; }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
-        .custom-checkbox { appearance: none; width: 24px; height: 24px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; cursor: pointer; }
-        .custom-checkbox:checked { background-color: #EE4B2B; border-color: #EE4B2B; }
-        .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 16px; font-weight: bold; }
+        .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
+        #cameraOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; }
+        #videoFull { width: 100%; height: 100%; object-fit: cover; }
+        #shutter { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: white; border-radius: 50%; border: 5px solid rgba(255,255,255,0.3); }
         #photoArea { position: relative; width: 100%; height: 128px; background-color: #1c1c1e; border-radius: 16px; border: 2px dashed #3f3f46; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
-        #videoFeed { width: 100%; height: 100%; object-fit: cover; }
-        .btn-success { width: 100%; height: 64px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        #p { width: 100%; height: 100%; object-fit: cover; }
+        .btn-success { width: 100%; height: 64px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .btn-success:disabled { background: #163a24; color: #2d5a3f; cursor: not-allowed; }
         .btn-danger { background: #ef4444; color: white; border: none; border-radius: 20px; padding: 8px 40px; font-size: 10px; font-weight: bold; cursor: pointer; }
         .icon-lg { width: 40px; height: 40px; fill: #EE4B2B; }
         .icon-md { width: 32px; height: 32px; fill: #71717a; }
+        .custom-checkbox { appearance: none; width: 24px; height: 24px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; cursor: pointer; }
+        .custom-checkbox:checked { background-color: #EE4B2B; border-color: #EE4B2B; }
+        .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
+
+    <div id="cameraOverlay" class="hidden">
+        <video id="videoFull" autoplay playsinline></video>
+        <div id="shutter" onclick="capturePhoto()"></div>
+        <button onclick="closeCamera()" style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); border: none; color: white; padding: 10px 20px; border-radius: 20px;">VOLTAR</button>
+    </div>
+
     <div class="main-container">
         <div class="flex flex-col items-center" style="margin-bottom: 8px;">
             <svg class="icon-lg" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
             <h1 style="font-size: 20px; font-weight: bold; margin: 4px 0 0 0;">CASA DOS ELETRÔNICOS</h1>
             <p style="color: #71717a; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin: 0;">Entregas</p>
         </div>
-        
+
         <div id="statusLabel" style="font-weight: bold; font-size: 10px; height: 24px; text-transform: uppercase; text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;"></div>
-        
+
         <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
             <div class="flex flex-col gap-2">
                 <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">FOTO:</label>
-                <div id="photoArea" onclick="handlePhotoClick()">
-                    <video id="videoFeed" autoplay playsinline class="hidden"></video>
-                    <div id="photoPlaceholder" class="flex flex-col items-center">
+                <div id="photoArea" onclick="openCamera()">
+                    <div id="placeholder" class="flex flex-col items-center">
                         <svg class="icon-md" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5l-1.83 2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.17L12 2z"/></svg>
-                        <span style="font-size: 10px; color: #71717a; font-weight: bold; margin-top: 4px;">TOQUE PARA ABRIR CÂMERA</span>
+                        <span style="font-size: 10px; color: #71717a; font-weight: bold; margin-top: 4px;">TIRAR FOTO</span>
                     </div>
-                    <img id="previewImg" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
-                    <button id="btnRemovePhoto" class="hidden" onclick="resetPhoto(event)" style="position: absolute; top: 8px; right: 8px; background: #ef4444; border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-weight: bold;">X</button>
+                    <img id="p" class="hidden">
+                    <button id="r" class="hidden" onclick="reset(event)" style="position: absolute; top: 8px; right: 8px; background: #ef4444; border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-weight: bold;">X</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-1">
                 <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">CLIENTE:</label>
-                <input type="text" id="clientName" placeholder="NOME DO CLIENTE" class="input-dark" oninput="validateForm()">
+                <input type="text" id="client" placeholder="Nome do cliente" class="input-dark" oninput="val()">
             </div>
 
             <div class="flex flex-col gap-1">
                 <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">OBSERVAÇÕES:</label>
-                <textarea id="observations" rows="2" placeholder="(OPCIONAL)" class="input-dark" style="resize: none;" oninput="validateForm()"></textarea>
+                <textarea id="obs" rows="2" placeholder="(Opcional)" class="input-dark" style="resize: none;" oninput="val()"></textarea>
             </div>
 
             <div class="flex items-center" style="gap: 12px; margin-left: 4px;">
-                <input type="checkbox" id="hasLocation" class="custom-checkbox" onchange="toggleGpsOnCheckbox()">
-                <label for="hasLocation" style="color: #a1a1aa; font-size: 10px; font-weight: bold; cursor: pointer;">JÁ TEM LOCALIZAÇÃO</label>
+                <input type="checkbox" id="gpsCheck" class="custom-checkbox" onchange="toggleGps()">
+                <label for="gpsCheck" style="color: #a1a1aa; font-size: 10px; font-weight: bold; cursor: pointer;">JÁ TEM LOCALIZAÇÃO</label>
             </div>
 
             <div style="padding-top: 8px;">
-                <button id="btnEntregar" onclick="startProcess()" disabled class="btn-success">ENVIAR</button>
+                <button id="btn" onclick="send()" disabled class="btn-success">ENVIAR</button>
             </div>
         </div>
 
@@ -85,133 +90,73 @@
     </div>
 
     <script>
-        const clientInput = document.getElementById('clientName');
-        const obsInput = document.getElementById('observations');
-        const hasLocationInput = document.getElementById('hasLocation');
-        const statusLabel = document.getElementById('statusLabel');
-        const video = document.getElementById('videoFeed');
-        const previewImg = document.getElementById('previewImg');
-        const photoPlaceholder = document.getElementById('photoPlaceholder');
-        const btnRemovePhoto = document.getElementById('btnRemovePhoto');
-        const btnEntregar = document.getElementById('btnEntregar');
-        
-        let stream = null;
-        let photoBlob = null;
-        let currentPos = null;
-        let watchId = null;
+        let s = null, b = null, pos = null, w = null;
+        const video = document.getElementById('videoFull'), p = document.getElementById('p'), ph = document.getElementById('placeholder'), btnR = document.getElementById('r'), stat = document.getElementById('statusLabel'), client = document.getElementById('client'), obs = document.getElementById('obs'), check = document.getElementById('gpsCheck'), btnE = document.getElementById('btn'), overlay = document.getElementById('cameraOverlay');
 
-        async function handlePhotoClick() {
-            if (photoBlob) return;
-            if (!stream) {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: "environment", width: { ideal: 1920 } }, 
-                        audio: false 
-                    });
-                    video.srcObject = stream;
-                    video.classList.remove('hidden');
-                    photoPlaceholder.classList.add('hidden');
-                    statusLabel.innerText = "TOQUE NO QUADRO PARA TIRAR A FOTO";
-                    statusLabel.style.color = "#eab308";
-                } catch (e) { alert("ERRO: PERMITA O ACESSO À CÂMERA"); }
-            } else {
-                capturePhoto();
-            }
+        async function openCamera() {
+            if (b) return;
+            try {
+                s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 } }, audio: false });
+                video.srcObject = s;
+                overlay.classList.remove('hidden');
+            } catch (e) { alert("Permita a câmera"); }
+        }
+
+        function closeCamera() {
+            if (s) s.getTracks().forEach(t => t.stop());
+            s = null;
+            overlay.classList.add('hidden');
         }
 
         function capturePhoto() {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            canvas.toBlob((blob) => {
-                photoBlob = blob;
-                previewImg.src = URL.createObjectURL(blob);
-                previewImg.classList.remove('hidden');
-                video.classList.add('hidden');
-                btnRemovePhoto.classList.remove('hidden');
-                stopCamera();
-                validateForm();
-                if(!hasLocationInput.checked) startGpsTracking();
+            const c = document.createElement('canvas');
+            c.width = video.videoWidth; c.height = video.videoHeight;
+            c.getContext('2d').drawImage(video, 0, 0);
+            c.toBlob(blob => {
+                b = blob; 
+                p.src = URL.createObjectURL(blob);
+                p.classList.remove('hidden'); 
+                ph.classList.add('hidden');
+                btnR.classList.remove('hidden');
+                closeCamera();
+                val(); 
+                if (!check.checked) startGps();
             }, 'image/jpeg', 0.95);
         }
 
-        function stopCamera() {
-            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        function reset(e) {
+            e.stopPropagation(); b = null; p.classList.add('hidden');
+            btnR.classList.add('hidden'); ph.classList.remove('hidden');
+            if (w) navigator.geolocation.clearWatch(w); w = null; pos = null; stat.innerText = ""; 
+            val();
         }
 
-        function resetPhoto(e) {
-            e.stopPropagation();
-            photoBlob = null;
-            previewImg.classList.add('hidden');
-            btnRemovePhoto.classList.add('hidden');
-            photoPlaceholder.classList.remove('hidden');
-            stopGpsTracking();
-            validateForm();
+        function val() { 
+            btnE.disabled = !client.value.trim() || !b; 
         }
 
-        function validateForm() {
-            btnEntregar.disabled = !clientInput.value.trim() || !photoBlob;
-        }
-
-        function startGpsTracking() {
-            if (hasLocationInput.checked || watchId) return;
-            statusLabel.innerText = "BUSCANDO GPS...";
-            statusLabel.style.color = "#eab308";
-            watchId = navigator.geolocation.watchPosition((p) => {
-                currentPos = p;
-                const acc = Math.floor(p.coords.accuracy);
-                statusLabel.innerText = `PRECISÃO: ±${acc}M`;
-                statusLabel.style.color = acc <= 15 ? "#22c55e" : "#eab308";
+        function startGps() {
+            if (check.checked || w) return;
+            stat.innerText = "BUSCANDO GPS..."; stat.style.color = "#eab308";
+            w = navigator.geolocation.watchPosition(p => {
+                pos = p; const acc = Math.floor(p.coords.accuracy);
+                stat.innerText = `PRECISÃO: ±${acc}M`; stat.style.color = acc <= 15 ? "#22c55e" : "#eab308";
             }, null, { enableHighAccuracy: true });
         }
 
-        function stopGpsTracking() {
-            if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-            currentPos = null;
-            statusLabel.innerText = "";
-        }
+        function toggleGps() { if (check.checked) { if (w) navigator.geolocation.clearWatch(w); w = null; pos = null; stat.innerText = ""; } else if (b) startGps(); }
 
-        function toggleGpsOnCheckbox() {
-            if (hasLocationInput.checked) stopGpsTracking();
-            else if (photoBlob) startGpsTracking();
-        }
-
-        async function startProcess() {
-            btnEntregar.disabled = true;
-            btnEntregar.innerText = "ENVIANDO...";
-            
-            let mapsUrl = "";
-            if (!hasLocationInput.checked) {
-                if (currentPos) {
-                    mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentPos.coords.latitude},${currentPos.coords.longitude}`;
-                } else {
-                    alert("Aguarde a precisão do GPS");
-                    btnEntregar.disabled = false;
-                    btnEntregar.innerText = "ENVIAR";
-                    return;
-                }
-            }
-
-            let message = `CLIENTE: ${clientInput.value.trim().toUpperCase()}\n\n`;
-            if (obsInput.value.trim()) message += `OBS:\n${obsInput.value.trim().toUpperCase()}\n\n`;
-            message += hasLocationInput.checked ? "CLIENTE JÁ TEM LOCALIZAÇÃO ADICIONADA" : mapsUrl;
-
-            const file = new File([photoBlob], "entrega.jpg", { type: "image/jpeg" });
-
+        async function send() {
+            btnE.disabled = true; btnE.innerText = "ENVIANDO...";
+            let msg = `CLIENTE: ${client.value.trim().toUpperCase()}\n\n`;
+            if (obs.value.trim()) msg += `OBS:\n${obs.value.trim().toUpperCase()}\n\n`;
+            msg += check.checked ? "CLIENTE JÁ TEM LOCALIZAÇÃO ADICIONADA" : (pos ? `https://www.google.com/maps/search/?api=1&query=${pos.coords.latitude},${pos.coords.longitude}` : "GPS indisponível");
             if (navigator.share) {
                 try {
-                    await navigator.share({ files: [file], text: message });
+                    await navigator.share({ files: [new File([b], "entrega.jpg", { type: "image/jpeg" })], text: msg });
                     location.reload();
-                } catch (e) { 
-                    btnEntregar.disabled = false;
-                    btnEntregar.innerText = "ENVIAR";
-                }
+                } catch (e) { btnE.disabled = false; btnE.innerText = "ENVIAR"; }
             }
-        }
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
         }
     </script>
 </body>
