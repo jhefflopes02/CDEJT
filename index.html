@@ -4,30 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CASA DOS ELETRÔNICOS</title>
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#000000">
-    <link rel="apple-touch-icon" href="icon.png">
     <style>
         body { background-color: #000000; color: white; font-family: sans-serif; -webkit-tap-highlight-color: transparent; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; margin: 0; overscroll-behavior: none; }
-        .main-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 400px; margin: 0 auto; padding: 10px 20px 30px 20px; box-sizing: border-box; }
+        .main-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 400px; margin: 0 auto; padding: 10px 20px 100px 20px; box-sizing: border-box; position: relative; }
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .items-center { align-items: center; }
         .hidden { display: none !important; }
         .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
+        
         #cameraOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; flex-direction: column; }
         #videoFull { width: 100%; height: 100%; object-fit: cover; }
         #shutter { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: white; border-radius: 50%; border: 5px solid rgba(255,255,255,0.3); }
-        #photoArea { position: relative; width: 100%; height: 128px; background-color: #1c1c1e; border-radius: 16px; border: 2px dashed #3f3f46; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
-        #p { width: 100%; height: 100%; object-fit: cover; }
-        .btn-success { width: 100%; height: 64px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; cursor: pointer; transition: 0.3s; }
-        .btn-success:disabled { background: #163a24; color: #2d5a3f; cursor: not-allowed; }
-        .btn-danger { background: #ef4444; color: white; border: none; border-radius: 20px; padding: 8px 40px; font-size: 10px; font-weight: bold; cursor: pointer; }
+
+        /* BOTÃO FOTO COLORIDO E BONITO */
+        #btnCamera { 
+            width: 100%; 
+            height: 70px; 
+            background: linear-gradient(135deg, #EE4B2B 0%, #991b1b 100%); 
+            border-radius: 16px; 
+            border: none; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 12px;
+            cursor: pointer; 
+            flex-shrink: 0; 
+            transition: transform 0.1s, brightness 0.2s;
+            box-shadow: 0 4px 15px rgba(238, 75, 43, 0.3);
+            -webkit-appearance: none;
+            margin-top: 5px;
+        }
+        #btnCamera:active { transform: scale(0.98); brightness: 1.2; }
+        #btnCamera span { font-size: 18px; font-weight: 900; color: white; letter-spacing: 2px; }
+        #btnCamera svg { fill: white; width: 28px; height: 28px; }
+        
+        #previewArea { display: flex; justify-content: center; position: relative; margin-top: 15px; flex: 1; min-height: 0; overflow: hidden; }
+        #p { height: 100%; max-height: 220px; width: auto; border-radius: 16px; object-fit: contain; border: 2px solid #3f3f46; }
+        #r { position: absolute; top: 5px; right: 15px; background: #ef4444; border: none; border-radius: 50%; width: 28px; height: 28px; color: white; font-weight: bold; cursor: pointer; }
+
+        .btn-success { width: 100%; height: 60px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; flex-shrink: 0; margin-top: 5px; }
+        .btn-success:disabled { background: #163a24; color: #14532d; opacity: 0.6; }
+        .btn-danger { background: #ef4444; color: white; border: none; border-radius: 20px; padding: 8px 40px; font-size: 10px; font-weight: bold; }
+        
+        .footer { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; background: black; padding-top: 10px; }
         .icon-lg { width: 40px; height: 40px; fill: #EE4B2B; }
-        .icon-md { width: 32px; height: 32px; fill: #71717a; }
-        .custom-checkbox { appearance: none; width: 24px; height: 24px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; cursor: pointer; }
+        .custom-checkbox { appearance: none; width: 24px; height: 24px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; flex-shrink: 0; }
         .custom-checkbox:checked { background-color: #EE4B2B; border-color: #EE4B2B; }
-        .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 16px; font-weight: bold; }
+        .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -35,77 +59,65 @@
     <div id="cameraOverlay" class="hidden">
         <video id="videoFull" autoplay playsinline></video>
         <div id="shutter" onclick="capturePhoto()"></div>
-        <button onclick="closeCamera()" style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); border: none; color: white; padding: 10px 20px; border-radius: 20px;">VOLTAR</button>
     </div>
 
     <div class="main-container">
-        <div class="flex flex-col items-center" style="margin-bottom: 8px;">
-            <svg class="icon-lg" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-            <h1 style="font-size: 20px; font-weight: bold; margin: 4px 0 0 0;">CASA DOS ELETRÔNICOS</h1>
-            <p style="color: #71717a; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin: 0;">Entregas</p>
-        </div>
-
-        <div id="statusLabel" style="font-weight: bold; font-size: 10px; height: 24px; text-transform: uppercase; text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;"></div>
-
-        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
-            <div class="flex flex-col gap-2">
-                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">FOTO:</label>
-                <div id="photoArea" onclick="openCamera()">
-                    <div id="placeholder" class="flex flex-col items-center">
-                        <svg class="icon-md" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5l-1.83 2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.17L12 2z"/></svg>
-                        <span style="font-size: 10px; color: #71717a; font-weight: bold; margin-top: 4px;">TIRAR FOTO</span>
-                    </div>
-                    <img id="p" class="hidden">
-                    <button id="r" class="hidden" onclick="reset(event)" style="position: absolute; top: 8px; right: 8px; background: #ef4444; border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-weight: bold;">X</button>
-                </div>
+        <div style="display: flex; flex-direction: column; gap: 15px; flex-shrink: 0;">
+            <div class="flex flex-col items-center">
+                <svg class="icon-lg" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                <h1 style="font-size: 20px; font-weight: bold; margin: 4px 0 0 0;">CASA DOS ELETRÔNICOS</h1>
+                <p style="color: #71717a; font-size: 9px; text-transform: uppercase; margin: 0;">Entregas</p>
             </div>
 
+            <div id="statusLabel" style="font-weight: bold; font-size: 10px; height: 12px; text-align: center; text-transform: uppercase;"></div>
+
+            <button id="btnCamera" onclick="openCamera()">
+                <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5l-1.83 2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.17L12 2z"/></svg>
+                <span>FOTO</span>
+            </button>
+
             <div class="flex flex-col gap-1">
-                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">CLIENTE:</label>
+                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold;">CLIENTE:</label>
                 <input type="text" id="client" placeholder="Nome do cliente" class="input-dark" oninput="val()">
             </div>
 
             <div class="flex flex-col gap-1">
-                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">OBSERVAÇÕES:</label>
+                <label style="color: #a1a1aa; font-size: 10px; font-weight: bold;">OBSERVAÇÕES:</label>
                 <textarea id="obs" rows="2" placeholder="(Opcional)" class="input-dark" style="resize: none;" oninput="val()"></textarea>
             </div>
 
-            <div class="flex items-center" style="gap: 12px; margin-left: 4px;">
+            <div class="flex items-center" style="gap: 12px;">
                 <input type="checkbox" id="gpsCheck" class="custom-checkbox" onchange="toggleGps()">
                 <label for="gpsCheck" style="color: #a1a1aa; font-size: 10px; font-weight: bold; cursor: pointer;">JÁ TEM LOCALIZAÇÃO</label>
             </div>
 
-            <div style="padding-top: 8px;">
-                <button id="btn" onclick="send()" disabled class="btn-success">ENVIAR</button>
-            </div>
+            <button id="btn" onclick="send()" disabled class="btn-success">ENVIAR</button>
         </div>
 
-        <div style="margin-top: 16px; text-align: center;">
-            <div style="opacity: 0.4; margin-bottom: 16px;">
+        <div id="previewArea" class="hidden">
+            <img id="p">
+            <button id="r" onclick="reset(event)">×</button>
+        </div>
+
+        <div class="footer">
+            <div style="opacity: 0.4; margin-bottom: 8px;">
                 <p style="font-size: 8px; color: #71717a; margin: 0;">DESENVOLVIDO POR:</p>
                 <p style="font-size: 9px; color: #a1a1aa; font-weight: bold; margin: 0;">JHEFF LOPES</p>
             </div>
-            <button onclick="window.close()" class="btn-danger">SAIR</button>
+            <button onclick="sairApp()" class="btn-danger">SAIR</button>
         </div>
     </div>
 
     <script>
         let s = null, b = null, pos = null, w = null;
-        const video = document.getElementById('videoFull'), p = document.getElementById('p'), ph = document.getElementById('placeholder'), btnR = document.getElementById('r'), stat = document.getElementById('statusLabel'), client = document.getElementById('client'), obs = document.getElementById('obs'), check = document.getElementById('gpsCheck'), btnE = document.getElementById('btn'), overlay = document.getElementById('cameraOverlay');
+        const video = document.getElementById('videoFull'), p = document.getElementById('p'), stat = document.getElementById('statusLabel'), client = document.getElementById('client'), obs = document.getElementById('obs'), check = document.getElementById('gpsCheck'), btnE = document.getElementById('btn'), overlay = document.getElementById('cameraOverlay'), previewArea = document.getElementById('previewArea');
 
         async function openCamera() {
-            if (b) return;
             try {
-                s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 } }, audio: false });
+                s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = s;
                 overlay.classList.remove('hidden');
             } catch (e) { alert("Permita a câmera"); }
-        }
-
-        function closeCamera() {
-            if (s) s.getTracks().forEach(t => t.stop());
-            s = null;
-            overlay.classList.add('hidden');
         }
 
         function capturePhoto() {
@@ -115,45 +127,54 @@
             c.toBlob(blob => {
                 b = blob; 
                 p.src = URL.createObjectURL(blob);
-                p.classList.remove('hidden'); 
-                ph.classList.add('hidden');
-                btnR.classList.remove('hidden');
-                closeCamera();
+                previewArea.classList.remove('hidden');
+                if (s) s.getTracks().forEach(t => t.stop());
+                overlay.classList.add('hidden');
                 val(); 
                 if (!check.checked) startGps();
-            }, 'image/jpeg', 0.95);
+            }, 'image/jpeg');
+        }
+
+        function stopGps() {
+            if (w) { navigator.geolocation.clearWatch(w); w = null; }
+            pos = null; stat.innerText = "";
         }
 
         function reset(e) {
-            e.stopPropagation(); b = null; p.classList.add('hidden');
-            btnR.classList.add('hidden'); ph.classList.remove('hidden');
-            if (w) navigator.geolocation.clearWatch(w); w = null; pos = null; stat.innerText = ""; 
+            e.stopPropagation(); b = null; 
+            previewArea.classList.add('hidden');
+            stopGps();
             val();
         }
 
-        function val() { 
-            btnE.disabled = !client.value.trim() || !b; 
-        }
+        function val() { btnE.disabled = !client.value.trim() || !b; }
 
         function startGps() {
             if (check.checked || w) return;
-            stat.innerText = "BUSCANDO GPS..."; stat.style.color = "#eab308";
+            stat.innerText = "BUSCANDO GPS...";
             w = navigator.geolocation.watchPosition(p => {
-                pos = p; const acc = Math.floor(p.coords.accuracy);
-                stat.innerText = `PRECISÃO: ±${acc}M`; stat.style.color = acc <= 15 ? "#22c55e" : "#eab308";
+                pos = p;
+                stat.innerText = `PRECISÃO: ±${Math.floor(p.coords.accuracy)}M`;
+                stat.style.color = p.coords.accuracy <= 15 ? "#22c55e" : "#eab308";
             }, null, { enableHighAccuracy: true });
         }
 
-        function toggleGps() { if (check.checked) { if (w) navigator.geolocation.clearWatch(w); w = null; pos = null; stat.innerText = ""; } else if (b) startGps(); }
+        function toggleGps() { 
+            if (check.checked) { stopGps(); } else if (b) { startGps(); }
+        }
+
+        function sairApp() { stopGps(); window.close(); }
 
         async function send() {
             btnE.disabled = true; btnE.innerText = "ENVIANDO...";
             let msg = `CLIENTE: ${client.value.trim().toUpperCase()}\n\n`;
             if (obs.value.trim()) msg += `OBS:\n${obs.value.trim().toUpperCase()}\n\n`;
-            msg += check.checked ? "CLIENTE JÁ TEM LOCALIZAÇÃO ADICIONADA" : (pos ? `https://www.google.com/maps/search/?api=1&query=${pos.coords.latitude},${pos.coords.longitude}` : "GPS indisponível");
+            msg += check.checked ? "CLIENTE JÁ TEM LOCALIZAÇÃO" : (pos ? `https://www.google.com/maps/search/?api=1&query=${pos.coords.latitude},${pos.coords.longitude}` : "GPS indisponível");
+            
             if (navigator.share) {
                 try {
                     await navigator.share({ files: [new File([b], "entrega.jpg", { type: "image/jpeg" })], text: msg });
+                    stopGps();
                     location.reload();
                 } catch (e) { btnE.disabled = false; btnE.innerText = "ENVIAR"; }
             }
