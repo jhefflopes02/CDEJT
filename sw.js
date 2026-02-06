@@ -1,4 +1,4 @@
-const CACHE_NAME = 'casa-eletronicos-v12';
+const CACHE_NAME = 'casa-eletronicos-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -6,35 +6,31 @@ const ASSETS = [
   './icon.png'
 ];
 
+// Instala o Service Worker e armazena os arquivos em cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
     })
   );
-  self.skipWaiting();
 });
 
+// Ativa e remove caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       );
     })
   );
-  self.clients.claim();
 });
 
+// Estratégia: Tenta a rede, se falhar (offline), usa o cache
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
