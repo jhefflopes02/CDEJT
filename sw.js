@@ -1,4 +1,4 @@
-const CACHE_NAME = 'casa-eletronicos-v1';
+const CACHE_NAME = 'jhefftech';
 const ASSETS = [
   './',
   './index.html',
