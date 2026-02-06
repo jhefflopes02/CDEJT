@@ -1,7 +1,7 @@
 {
   "name": "CASA DOS ELETRÔNICOS",
   "short_name": "Entregas",
-  "start_url": "teste.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
