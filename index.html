@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CASA DOS ELETRÔNICOS</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="icon.png">
     <style>
         body { background-color: #000000; color: white; font-family: sans-serif; -webkit-tap-highlight-color: transparent; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; margin: 0; overscroll-behavior: none; }
         .main-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 400px; margin: 0 auto; padding: 10px 20px 30px 20px; box-sizing: border-box; }
@@ -20,12 +21,12 @@
         .input-dark { background-color: #1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; color: white; padding: 12px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; font-family: sans-serif; }
         button:disabled { opacity: 0.3; cursor: not-allowed; }
         .custom-checkbox { appearance: none; width: 24px; height: 24px; border: 2px solid #52525b; border-radius: 4px; background-color: #1c1c1e; display: grid; place-content: center; cursor: pointer; }
-        .custom-checkbox:checked { background-color: #3b82f6; border-color: #3b82f6; }
+        .custom-checkbox:checked { background-color: #EE4B2B; border-color: #EE4B2B; }
         .custom-checkbox:checked::before { content: "✓"; color: white; font-size: 16px; font-weight: bold; }
         #photoArea { position: relative; width: 100%; height: 128px; background-color: #1c1c1e; border-radius: 16px; border: 2px dashed #3f3f46; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
         .btn-success { width: 100%; height: 64px; background: #22c55e; color: white; border: none; border-radius: 16px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-danger { background: #ef4444; color: white; border: none; border-radius: 20px; padding: 8px 40px; font-size: 10px; font-weight: bold; cursor: pointer; }
-        .icon-lg { width: 40px; height: 40px; fill: #3b82f6; }
+        .icon-lg { width: 40px; height: 40px; fill: #EE4B2B; }
         .icon-md { width: 32px; height: 32px; fill: #71717a; }
     </style>
 </head>
@@ -40,7 +41,7 @@
         <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
             <div class="flex flex-col gap-2">
                 <label style="color: #a1a1aa; font-size: 10px; font-weight: bold; margin-left: 4px;">FOTO:</label>
-                <div id="photoArea" onclick="if(!photoBuffer) cameraInput.click()">
+                <div id="photoArea" onclick="if(!hasPhotoInDb) cameraInput.click()">
                     <div id="photoPlaceholder" class="flex flex-col items-center">
                         <svg class="icon-md" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" opacity="0"/><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5l-1.83 2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.17L12 2zM5 18V6h14v12H5zm7-10c2.76 0 5 2.24 5 5s-2.24 5-5 5-5-2.24-5-5 2.24-5 5-5z"/></svg>
                         <span style="font-size: 10px; color: #71717a; font-weight: bold; margin-top: 4px;">TIRAR FOTO</span>
@@ -62,10 +63,7 @@
                 <label for="hasLocation" style="color: #a1a1aa; font-size: 10px; font-weight: bold; cursor: pointer;">JÁ TEM LOCALIZAÇÃO</label>
             </div>
             <div style="padding-top: 8px;">
-                <button id="btnEntregar" onclick="startProcess(true, photoBuffer)" disabled class="btn-success">
-                    <svg style="width: 24px; height: 24px; fill: white;" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
-                    FINALIZAR
-                </button>
+                <button id="btnEntregar" onclick="startProcess(true)" disabled class="btn-success">ENVIAR</button>
             </div>
         </div>
         <div style="margin-top: 16px; text-align: center;">
@@ -88,24 +86,85 @@
         const btnRemovePhoto = document.getElementById('btnRemovePhoto');
         const btnEntregar = document.getElementById('btnEntregar');
         let isProcessing = false;
-        let photoBuffer = null;
+        let hasPhotoInDb = false;
         let currentPos = null;
         let watchId = null;
 
-        function validateForm() {
-            btnEntregar.disabled = !clientInput.value.trim() || !photoBuffer || isProcessing;
+        const dbName = "DeliveryDB";
+        const storeName = "temp_store";
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(storeName)) db.createObjectStore(storeName);
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
         }
 
-        cameraInput.onchange = (e) => {
+        async function savePhoto(file) {
+            const db = await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readwrite");
+                tx.objectStore(storeName).put(file, "current_photo");
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject();
+            });
+        }
+
+        async function getPhoto() {
+            const db = await openDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, "readonly");
+                const request = tx.objectStore(storeName).get("current_photo");
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => resolve(null);
+            });
+        }
+
+        async function deletePhoto() {
+            const db = await openDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, "readwrite");
+                tx.objectStore(storeName).delete("current_photo");
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        async function loadPhotoOnStartup() {
+            const file = await getPhoto();
+            if (file) {
+                hasPhotoInDb = true;
+                const url = URL.createObjectURL(file);
+                previewImg.src = url;
+                previewImg.classList.remove('hidden');
+                photoPlaceholder.classList.add('hidden');
+                btnRemovePhoto.classList.remove('hidden');
+                validateForm();
+                if(!hasLocationInput.checked) startGpsTracking();
+            }
+        }
+
+        function validateForm() {
+            btnEntregar.disabled = !clientInput.value.trim() || !hasPhotoInDb || isProcessing;
+        }
+
+        cameraInput.onchange = async (e) => {
             const file = e.target.files[0];
             if (file) {
-                photoBuffer = file;
+                await savePhoto(file);
+                hasPhotoInDb = true;
+                if (previewImg.src) URL.revokeObjectURL(previewImg.src);
                 previewImg.src = URL.createObjectURL(file);
                 previewImg.classList.remove('hidden');
                 photoPlaceholder.classList.add('hidden');
                 btnRemovePhoto.classList.remove('hidden');
                 validateForm();
-                if(!hasLocationInput.checked) setTimeout(startGpsTracking, 1000);
+                if(!hasLocationInput.checked) startGpsTracking();
+                cameraInput.value = ""; // Libera o input imediatamente
             }
         };
 
@@ -129,13 +188,13 @@
 
         function toggleGpsOnCheckbox() {
             if (hasLocationInput.checked) stopGpsTracking();
-            else if (photoBuffer) startGpsTracking();
+            else if (hasPhotoInDb) startGpsTracking();
         }
 
-        function clearForNextDelivery() {
+        async function clearForNextDelivery() {
+            await deletePhoto();
             if(previewImg.src) URL.revokeObjectURL(previewImg.src);
-            photoBuffer = null;
-            cameraInput.value = "";
+            hasPhotoInDb = false;
             previewImg.classList.add('hidden');
             previewImg.src = "";
             photoPlaceholder.classList.remove('hidden');
@@ -147,10 +206,10 @@
             validateForm();
         }
 
-        function clearStoredPhoto() {
+        async function clearStoredPhoto() {
+            await deletePhoto();
             if(previewImg.src) URL.revokeObjectURL(previewImg.src);
-            photoBuffer = null;
-            cameraInput.value = "";
+            hasPhotoInDb = false;
             previewImg.classList.add('hidden');
             photoPlaceholder.classList.remove('hidden');
             btnRemovePhoto.classList.add('hidden');
@@ -163,7 +222,7 @@
             window.location.href = "about:blank";
         }
 
-        async function startProcess(withPhoto, file = null) {
+        async function startProcess(withPhoto) {
             if (isProcessing) return;
             isProcessing = true;
             const originalHTML = btnEntregar.innerHTML;
@@ -183,12 +242,15 @@
                 let message = `CLIENTE: ${clientInput.value.trim().toUpperCase()}\n\n`;
                 if (obsInput.value.trim()) message += `OBS:\n${obsInput.value.trim().toUpperCase()}\n\n`;
                 message += hasLocationInput.checked ? "CLIENTE JÁ TEM LOCALIZAÇÃO ADICIONADA" : mapsUrl;
+                
+                const file = await getPhoto();
                 if (withPhoto && navigator.share && file) {
-                    await navigator.share({ files: [new File([file], "entrega.jpg", { type: "image/jpeg" })], text: message });
-                    clearForNextDelivery();
+                    const shareFile = new File([file], "entrega.jpg", { type: "image/jpeg" });
+                    await navigator.share({ files: [shareFile], text: message });
+                    await clearForNextDelivery();
                 } else {
                     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-                    clearForNextDelivery();
+                    await clearForNextDelivery();
                 }
             } catch (e) { 
                 statusLabel.innerText = e.message === "GPS_FAIL" ? "FALHA NO GPS" : "ENVIO CANCELADO";
@@ -199,28 +261,12 @@
             validateForm();
         }
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => {
-                    reg.update();
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                window.location.reload();
-                            }
-                        };
-                    };
-                });
-            });
-            let refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!refreshing) {
-                    window.location.reload();
-                    refreshing = true;
-                }
-            });
-        }
+        window.addEventListener('load', () => {
+            loadPhotoOnStartup();
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js');
+            }
+        });
     </script>
 </body>
 </html>
